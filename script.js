@@ -1,9 +1,7 @@
 /**
- * Prompt Anatomy Builder - Logic Engine
- * โดย: อั่งเปา (Technical Partner)
+ * Prompt Anatomy Builder - Version 2.0 (Dropdown Mode)
  */
 
-// 1. อ้างอิง Element ต่างๆ ในหน้าจอ
 const dom = {
     categoryList: document.getElementById('category-list'),
     roleInput: document.getElementById('role-input'),
@@ -14,55 +12,64 @@ const dom = {
     btnCopy: document.querySelector('.btn-copy')
 };
 
-// 2. ตัวแปรเก็บข้อมูลเทมเพลต
 let appData = null;
 
-/**
- * 3. เริ่มต้นแอป: โหลดข้อมูลเทมเพลต
- */
+// เริ่มต้นโหลดแอป
 async function initApp() {
     try {
-        // ดึงข้อมูลจากไฟล์ JSON (จำลองจาก Database)
         const response = await fetch('templates.json');
-        if (!response.ok) throw new Error('โหลดไฟล์เทมเพลตไม่สำเร็จ');
-        
+        if (!response.ok) throw new Error('Data fetch failed');
         appData = await response.json();
         renderSidebar();
-        console.log('✅ แอปพร้อมใช้งาน ข้อมูลโหลดเสร็จสิ้น');
     } catch (err) {
-        console.error('❌ Error:', err);
-        dom.categoryList.innerHTML = '<p style="color:#ff4b4b; padding:10px;">โหลดข้อมูลไม่สำเร็จ</p>';
+        console.error('Error:', err);
+        dom.categoryList.innerHTML = '<p style="color:red">โหลดข้อมูลไม่สำเร็จ กรุณารันผ่าน Live Server</p>';
     }
 }
 
-/**
- * 4. สร้างเมนู Sidebar ตามหมวดหมู่
- */
+// สร้าง Sidebar แบบ Dropdown (Accordion)
 function renderSidebar() {
     dom.categoryList.innerHTML = '';
 
     for (const sector in appData) {
-        // ส่วนหัวหมวดหมู่ (เช่น ธุรกิจ, การศึกษา)
-        const sectorDiv = document.createElement('div');
-        sectorDiv.className = 'category-item';
-        sectorDiv.innerHTML = `<strong>📁 ${sector}</strong>`;
+        // 1. สร้าง Container
+        const sectorItem = document.createElement('div');
+        sectorItem.className = 'category-item';
 
-        // รายการเทมเพลตย่อย
+        // 2. สร้างปุ่ม Toggle (ตัวเปิดปิดหมวดหมู่)
+        const toggleBtn = document.createElement('button');
+        toggleBtn.className = 'dropdown-toggle';
+        toggleBtn.innerHTML = `<span>📁 ${sector}</span>`;
+        
+        // คลิกเพื่อเปิด/ปิด
+        toggleBtn.onclick = () => {
+            // ปิดตัวอื่น (Accordion Mode) - ถ้าอยากให้เปิดได้พร้อมกันให้เอาบรรทัดนี้ออก
+            document.querySelectorAll('.category-item').forEach(el => {
+                if(el !== sectorItem) el.classList.remove('active');
+            });
+            sectorItem.classList.toggle('active');
+        };
+
+        // 3. สร้างรายการเทมเพลตด้านใน
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'dropdown-content';
+
         appData[sector].forEach(tmpl => {
             const btn = document.createElement('button');
             btn.className = 'template-btn';
             btn.innerText = `📄 ${tmpl.title}`;
             btn.onclick = () => loadTemplate(tmpl);
-            sectorDiv.appendChild(btn);
+            contentDiv.appendChild(btn);
         });
 
-        dom.categoryList.appendChild(sectorDiv);
+        // 4. ประกอบร่าง
+        sectorItem.appendChild(toggleBtn);
+        sectorItem.appendChild(contentDiv);
+        dom.categoryList.appendChild(sectorItem);
     }
 }
 
-/**
- * 5. โหลดข้อมูลเข้าช่อง 4 สี [Role, Context, Task, Format]
- */
+// โหลดข้อมูลเข้าสู่ Anatomy Blocks
 function loadTemplate(tmpl) {
     dom.roleInput.value = tmpl.role || '';
     dom.contextInput.value = tmpl.context || '';
@@ -71,34 +78,29 @@ function loadTemplate(tmpl) {
     
     updatePreview();
     
-    // Smooth scroll สำหรับมือถือ
+    // Feedback เมื่อเลือก (สำหรับ Mobile)
     if (window.innerWidth < 768) {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        window.scrollTo({ top: 300, behavior: 'smooth' });
     }
 }
 
-/**
- * 6. ระบบรวมร่างคำสั่ง (Live Preview)
- */
+// รวมร่างคำสั่ง (Live Preview Engine)
 function updatePreview() {
     const role = dom.roleInput.value.trim();
     const context = dom.contextInput.value.trim();
     const task = dom.taskInput.value.trim();
     const format = dom.formatInput.value.trim();
 
-    // ประกอบร่างตาม Anatomy 4 ส่วน
     let result = "";
-    if (role)    result += `[Role]\n${role}\n\n`;
-    if (context) result += `[Context]\n${context}\n\n`;
-    if (task)    result += `[Task]\n${task}\n\n`;
-    if (format)  result += `[Format]\n${format}`;
+    if (role)    result += `🔴 [Role]\n${role}\n\n`;
+    if (context) result += `🔵 [Context]\n${context}\n\n`;
+    if (task)    result += `🟢 [Task]\n${task}\n\n`;
+    if (format)  result += `🟡 [Format]\n${format}`;
 
     dom.magicPreview.innerText = result || "รอประกอบร่างที่นี่...";
 }
 
-/**
- * 7. ฟังก์ชันคัดลอก Prompt
- */
+// ระบบคัดลอกลง Clipboard
 function copyToClipboard() {
     const text = dom.magicPreview.innerText;
     if (text === "รอประกอบร่างที่นี่..." || !text) return;
@@ -106,25 +108,14 @@ function copyToClipboard() {
     navigator.clipboard.writeText(text).then(() => {
         const originalText = dom.btnCopy.innerText;
         dom.btnCopy.innerText = "✅ คัดลอกแล้ว!";
-        dom.btnCopy.style.backgroundColor = "#4BFF89";
+        dom.btnCopy.style.background = "#2ecc71";
         
         setTimeout(() => {
             dom.btnCopy.innerText = originalText;
-            dom.btnCopy.style.backgroundColor = "";
+            dom.btnCopy.style.background = "";
         }, 2000);
     });
 }
 
-/**
- * 8. โครงสร้างสำหรับการเชื่อมต่อ Gemini API (Future Expansion)
- */
-async function testWithGemini() {
-    const prompt = dom.magicPreview.innerText;
-    if (!prompt || prompt === "รอประกอบร่างที่นี่...") return;
-
-    console.log("🚀 กำลังส่งคำสั่งไปยัง Gemini...");
-    // พี่สามารถใส่โค้ด Fetch API เพื่อยิงเข้า Backend หรือ Gemini API ได้ที่นี่
-}
-
-// เริ่มการทำงานเมื่อหน้าเว็บพร้อม
+// รันแอป
 document.addEventListener('DOMContentLoaded', initApp);
