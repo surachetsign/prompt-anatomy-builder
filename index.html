@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prompt Anatomy Builder</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <h2>Categories</h2>
+            <div id="category-list">
+                </div>
+        </aside>
+
+        <main class="builder-area">
+            <header>
+                <h1>Prompt Anatomy Builder</h1>
+                <p>เลิกใช้ AI แบบเสี่ยงดวง แล้วมาใช้โครงสร้างที่สั่งได้จริง</p>
+            </header>
+
+            <div class="anatomy-grid">
+                <div class="input-card role">
+                    <label>🔴 1. [Role] บทบาทคุณคือใคร?</label>
+                    <textarea id="role-input" placeholder="เช่น คุณคือผู้เชี่ยวชาญด้านการตลาดร้านแว่นตา..." oninput="updatePreview()"></textarea>
+                </div>
+                <div class="input-card context">
+                    <label>🔵 2. [Context] บริบท/กลุ่มเป้าหมาย</label>
+                    <textarea id="context-input" placeholder="เช่น ร้านแว่นชื่อ [ ] ตั้งอยู่ที่ [ ]..." oninput="updatePreview()"></textarea>
+                </div>
+                <div class="input-card task">
+                    <label>🟢 3. [Task] งานที่สั่งให้ทำ</label>
+                    <textarea id="task-input" placeholder="เช่น ช่วยเขียนโพสต์ Facebook ขายแว่น..." oninput="updatePreview()"></textarea>
+                </div>
+                <div class="input-card format">
+                    <label>🟡 4. [Format] รูปแบบผลลัพธ์</label>
+                    <textarea id="format-input" placeholder="เช่น ความยาวไม่เกิน 200 คำ, ใส่ Emoji..." oninput="updatePreview()"></textarea>
+                </div>
+            </div>
+
+            <div class="preview-section">
+                <h3>✨ The Magic Result</h3>
+                <div id="magic-preview" class="preview-box">ประกอบร่างที่นี่...</div>
+                <div class="action-buttons">
+                    <button onclick="copyToClipboard()" class="btn-copy">คัดลอก Prompt</button>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
