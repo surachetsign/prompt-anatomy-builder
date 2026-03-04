@@ -17,7 +17,8 @@ let appData = null;
 // เริ่มต้นโหลดแอป
 async function initApp() {
     try {
-        const response = await fetch('templates.json');
+        //const response = await fetch('templates.json');
+		const response = await fetch('api.php');
         if (!response.ok) throw new Error('Data fetch failed');
         appData = await response.json();
         renderSidebar();

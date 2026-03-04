@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>Prompt Anatomy - Admin Dashboard</title>
+    <style>
+        body { font-family: 'Kanit', sans-serif; background: #f4f7f6; padding: 20px; }
+        .container { max-width: 1200px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background-color: #2c3e50; color: white; }
+        .form-group { margin-bottom: 15px; }
+        input, textarea { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; color: white; }
+        .btn-add { background-color: #2ecc71; margin-bottom: 20px; }
+        .btn-delete { background-color: #e74c3c; padding: 5px 10px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>⚙️ Admin Dashboard - จัดการเทมเพลต</h2>
+    
+    <div style="background: #ecf0f1; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+        <h3>➕ เพิ่มเทมเพลตใหม่</h3>
+        <div class="form-group">
+            <input type="text" id="title" placeholder="ชื่อเทมเพลต (เช่น เขียนโพสต์ Facebook)">
+        </div>
+        <div class="form-group">
+            <input type="number" id="function_id" placeholder="ID หมวดหมู่ย่อย (เช่น 1 สำหรับการตลาด)">
+        </div>
+        <div class="form-group"><textarea id="role" placeholder="[Role] บทบาท"></textarea></div>
+        <div class="form-group"><textarea id="context" placeholder="[Context] บริบท"></textarea></div>
+        <div class="form-group"><textarea id="task" placeholder="[Task] คำสั่ง"></textarea></div>
+        <div class="form-group"><textarea id="format" placeholder="[Format] รูปแบบ"></textarea></div>
+        <button class="btn-add" onclick="saveTemplate()">บันทึกเทมเพลต</button>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>ชื่อเทมเพลต</th>
+                <th>หมวดหมู่ (Function)</th>
+                <th>จัดการ</th>
+            </tr>
+        </thead>
+        <tbody id="table-body">
+            </tbody>
+    </table>
+</div>
+
+<script>
+    // 1. โหลดข้อมูลเมื่อเปิดหน้า
+    document.addEventListener('DOMContentLoaded', fetchTemplates);
+
+    // 2. ฟังก์ชันดึงข้อมูลจาก API
+    async function fetchTemplates() {
+        const response = await fetch('admin_api.php');
+        const data = await response.json();
+        const tbody = document.getElementById('table-body');
+        tbody.innerHTML = '';
+
+        data.forEach(item => {
+            tbody.innerHTML += `
+                <tr>
+                    <td>${item.id}</td>
+                    <td>${item.title}</td>
+                    <td>${item.function_name}</td>
+                    <td>
+                        <button class="btn-delete" onclick="deleteTemplate(${item.id})">ลบ</button>
+                    </td>
+                </tr>
+            `;
+        });
+    }
+
+    // 3. ฟังก์ชันบันทึกข้อมูลใหม่
+    async function saveTemplate() {
+        const payload = {
+            title: document.getElementById('title').value,
+            function_id: document.getElementById('function_id').value,
+            role_content: document.getElementById('role').value,
+            context_content: document.getElementById('context').value,
+            task_content: document.getElementById('task').value,
+            format_content: document.getElementById('format').value
+        };
+
+        const response = await fetch('admin_api.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        if (response.ok) {
+            alert('บันทึกสำเร็จ!');
+            fetchTemplates(); // โหลดตารางใหม่
+            // เคลียร์ฟอร์ม
+            document.querySelectorAll('input, textarea').forEach(el => el.value = '');
+        }
+    }
+
+    // 4. ฟังก์ชันลบข้อมูล
+    async function deleteTemplate(id) {
+        if (confirm('แน่ใจหรือไม่ว่าต้องการลบเทมเพลตนี้?')) {
+            await fetch(`admin_api.php?id=${id}`, { method: 'DELETE' });
+            fetchTemplates(); // โหลดตารางใหม่
+        }
+    }
+</script>
+
+</body>
+</html>
